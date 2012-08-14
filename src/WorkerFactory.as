@@ -35,16 +35,16 @@ package
 			var className:String = getQualifiedClassName(clazz).replace(/::/g, "."); 
 			var patched:Boolean;
 			
-			var i:int = -1;
-			while (i++ < tags.length) {
-				if (tags[i] is TagShowFrame) break;
-			}
-			while (i-- > 0) {
+			for (var i:int = 0; i < tags.length; i++) {
 				if (tags[i] is TagSymbolClass) {
 					var symbolTag:TagSymbolClass = tags[i] as TagSymbolClass;
-					var symbol:SWFSymbol = symbolTag.symbols[0];
-					symbolTag.symbols[0] = SWFSymbol.create(symbol.tagId, className);
-					patched = true;
+					for each (var symbol:SWFSymbol in symbolTag.symbols) {
+						if (symbol.tagId == 0) {
+							symbol.name = className;
+							patched = true;
+							// probably could break here, too
+						}
+					}
 				}
 			}
 			
