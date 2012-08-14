@@ -3,11 +3,6 @@ package
 	import com.codeazur.as3swf.SWF;
 	import com.codeazur.as3swf.data.SWFSymbol;
 	import com.codeazur.as3swf.tags.ITag;
-	import com.codeazur.as3swf.tags.TagDoABC;
-	import com.codeazur.as3swf.tags.TagEnableDebugger2;
-	import com.codeazur.as3swf.tags.TagEnd;
-	import com.codeazur.as3swf.tags.TagFileAttributes;
-	import com.codeazur.as3swf.tags.TagShowFrame;
 	import com.codeazur.as3swf.tags.TagSymbolClass;
 	
 	import flash.system.Worker;
@@ -23,32 +18,15 @@ package
 		 * Creates a Worker from a Class.
 		 * @param clazz the Class to create a Worker from
 		 * @param bytes SWF ByteArray which must contain the Class definition (usually loaderInfo.bytes)
-		 * @param debug set to tru if you want to debug the Worker
 		 * @param domain the WorkerDomain to create the Worker in
 		 * @return the new Worker
 		 */
-		public static function getWorkerFromClass(clazz:Class, bytes:ByteArray, debug:Boolean = true, domain:WorkerDomain = null):Worker
+		public static function getWorkerFromClass(clazz:Class, bytes:ByteArray, domain:WorkerDomain = null):Worker
 		{
 			var i:int;
 			var swf:SWF = new SWF(bytes);
 			var tags:Vector.<ITag> = swf.tags;
 			var className:String = getQualifiedClassName(clazz).replace(/::/g, "."); 
-			
-			if (debug)
-			{
-				for (i = 0; i < tags.length; i++)
-				{
-					if (tags[i] is TagEnableDebugger2)
-					{
-						break;
-					}
-				}
-				
-				if (i == tags.length)
-				{
-					tags.splice (1, 0, new TagEnableDebugger2());
-				}
-			}
 			
 			for (i = 0; i < tags.length; i++)
 			{
