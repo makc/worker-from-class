@@ -9,7 +9,6 @@ package
 	import com.codeazur.as3swf.tags.TagFileAttributes;
 	import com.codeazur.as3swf.tags.TagShowFrame;
 	import com.codeazur.as3swf.tags.TagSymbolClass;
-	//import flash.net.FileReference;
 	
 	import flash.system.Worker;
 	import flash.system.WorkerDomain;
@@ -30,37 +29,50 @@ package
 		 */
 		public static function getWorkerFromClass(clazz:Class, bytes:ByteArray, debug:Boolean = true, domain:WorkerDomain = null):Worker
 		{
+			var i:int;
 			var swf:SWF = new SWF(bytes);
 			var tags:Vector.<ITag> = swf.tags;
 			var className:String = getQualifiedClassName(clazz).replace(/::/g, "."); 
-			var patched:Boolean;
 			
-			for (var i:int = 0; i < tags.length; i++) {
-				if (tags[i] is TagSymbolClass) {
-					var symbolTag:TagSymbolClass = tags[i] as TagSymbolClass;
-					for each (var symbol:SWFSymbol in symbolTag.symbols) {
-						if (symbol.tagId == 0) {
-							symbol.name = className;
-							patched = true;
-							// probably could break here, too
-						}
+			if (debug)
+			{
+				for (i = 0; i < tags.length; i++)
+				{
+					if (tags[i] is TagEnableDebugger2)
+					{
+						break;
 					}
+				}
+				
+				if (i == tags.length)
+				{
+					tags.splice (1, 0, new TagEnableDebugger2());
 				}
 			}
 			
-			// TODO reimplement debug parameter
-			
-			if (patched) {
-				var swfBytes:ByteArray = new ByteArray();
-				swf.publish(swfBytes);
-				swfBytes.position = 0;
-				
-				//new FileReference ().save(swfBytes, "1.swf");
-				
-				if (!domain)
-					domain = WorkerDomain.current;
-				
-				return domain.createWorker(swfBytes);	
+			for (i = 0; i < tags.length; i++)
+			{
+				if (tags[i] is TagSymbolClass)
+				{
+					for each (var symbol:SWFSymbol in (tags[i] as TagSymbolClass).symbols)
+					{
+						if (symbol.tagId == 0)
+						{
+							symbol.name = className;
+
+							var swfBytes:ByteArray = new ByteArray();
+							swf.publish(swfBytes);
+							swfBytes.position = 0;
+							
+							if (domain == null)
+							{
+								domain = WorkerDomain.current;
+							}
+							
+							return domain.createWorker(swfBytes);	
+						}
+					}
+				}
 			}
 			
 			return null;
