@@ -9,6 +9,7 @@ package
 	import com.codeazur.as3swf.tags.TagFileAttributes;
 	import com.codeazur.as3swf.tags.TagShowFrame;
 	import com.codeazur.as3swf.tags.TagSymbolClass;
+	//import flash.net.FileReference;
 	
 	import flash.system.Worker;
 	import flash.system.WorkerDomain;
@@ -32,35 +33,29 @@ package
 			var swf:SWF = new SWF(bytes);
 			var tags:Vector.<ITag> = swf.tags;
 			var className:String = getQualifiedClassName(clazz).replace(/::/g, "."); 
-			var abcName:String = className.replace(/\./g, "/");
-			var classTag:ITag;
+			var patched:Boolean;
 			
-			for each (var tag:ITag in tags) 
-			{
-				if (tag is TagDoABC && TagDoABC(tag).abcName == abcName)
-				{
-					classTag = tag;
-					break;
+			var i:int = -1;
+			while (i++ < tags.length) {
+				if (tags[i] is TagShowFrame) break;
+			}
+			while (i-- > 0) {
+				if (tags[i] is TagSymbolClass) {
+					var symbolTag:TagSymbolClass = tags[i] as TagSymbolClass;
+					var symbol:SWFSymbol = symbolTag.symbols[0];
+					symbolTag.symbols[0] = SWFSymbol.create(symbol.tagId, className);
+					patched = true;
 				}
 			}
 			
-			if (classTag)
-			{
-				swf = new SWF();
-				swf.version = 17;
-				swf.tags.push(new TagFileAttributes());
-				if (debug)
-					swf.tags.push(new TagEnableDebugger2());
-				swf.tags.push(classTag);
-				var symbolTag:TagSymbolClass = new TagSymbolClass();
-				symbolTag.symbols.push(SWFSymbol.create(0, className));
-				swf.tags.push(symbolTag);
-				swf.tags.push(new TagShowFrame());
-				swf.tags.push(new TagEnd());
-				
+			// TODO reimplement debug parameter
+			
+			if (patched) {
 				var swfBytes:ByteArray = new ByteArray();
 				swf.publish(swfBytes);
 				swfBytes.position = 0;
+				
+				//new FileReference ().save(swfBytes, "1.swf");
 				
 				if (!domain)
 					domain = WorkerDomain.current;
