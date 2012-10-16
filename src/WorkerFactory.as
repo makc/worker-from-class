@@ -19,9 +19,10 @@ package
 		 * @param clazz the Class to create a Worker from
 		 * @param bytes SWF ByteArray which must contain the Class definition (usually loaderInfo.bytes)
 		 * @param domain the WorkerDomain to create the Worker in
+		 * @param giveAppPrivileges indicates whether the worker should be given application sandbox privileges in AIR
 		 * @return the new Worker
 		 */
-		public static function getWorkerFromClass(clazz:Class, bytes:ByteArray, domain:WorkerDomain = null):Worker
+		public static function getWorkerFromClass(clazz:Class, bytes:ByteArray, domain:WorkerDomain = null, giveAppPrivileges:Boolean = false):Worker
 		{
 			var i:int;
 			var swf:SWF = new SWF(bytes);
@@ -47,7 +48,7 @@ package
 								domain = WorkerDomain.current;
 							}
 							
-							return domain.createWorker(swfBytes);	
+							return domain.createWorker(swfBytes, giveAppPrivileges);	
 						}
 					}
 				}
